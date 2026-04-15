@@ -17,7 +17,7 @@ class InvalidSchemaError(Exception):
 class Loader:
     """
     Usage:
-        loader = Loader(data_dir="../data")
+        loader = Loader(data_dir="data")
         df_sales loader.load_sales()
     """
     def __init__(self, data_dir="data"):
@@ -25,16 +25,6 @@ class Loader:
         self.path_amazon_sales = os.path.join(self.data_dir, "amazon_sales.csv")
     
     def _ensure_exist(self, path):
-        print("CWD:", os.getcwd())
-        # print("DATA DIR:", self.data_dir)
-        # print("FULL PATH:", self.path)
-        
-        # if os.path.exists(self.data_dir):
-        #     print("FILES:", os.listdir(self.data_dir))
-        # else:
-        #     print("DATA DIR DOES NOT EXIST")
-        print("ensure exist", os.path.exists(path))
-
         if not os.path.exists(path):
             raise DataFileNotFoundError(f"Expected file not found: {path}")
     
@@ -64,6 +54,5 @@ class Loader:
         self._ensure_exist(self.path_amazon_sales)
         df = self._read_csv(self.path_amazon_sales)
         self._validate_columns(df, ["Date", "Title", "ASIN", "Marketplace", "Units"], "amazon_sales.csv")
-        print("load_sales")
         return df
 
