@@ -1,5 +1,5 @@
 from loader import Loader
-# from cleaner import Cleaner
+from cleaner import Cleaner
 # from analyzer import SalesAnalyzer
 # import visualizer as viz
 import os
@@ -13,3 +13,7 @@ try:
 except Exception as e:
     print("Data loading error: ", e)
     raise SystemExit(1)
+
+# 2) Clean
+cleaner = Cleaner()
+sales = cleaner.clean_sales(amazon_sales)
