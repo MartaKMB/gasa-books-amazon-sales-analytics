@@ -9,6 +9,7 @@ loader = Loader(data_dir="data")
 
 try:
     amazon_sales = loader.load_sales()
+    own_channel_sales = loader.load_own_channel_activity()
 except Exception as e:
     print("Data loading error: ", e)
     raise SystemExit(1)
@@ -16,6 +17,7 @@ except Exception as e:
 # 2) Clean
 cleaner = Cleaner()
 sales = cleaner.clean_sales(amazon_sales)
+own_sales = cleaner.clean_jdg(own_channel_sales)
 
 # 3) Analyze
 analyzer = SalesAnalyzer(sales)

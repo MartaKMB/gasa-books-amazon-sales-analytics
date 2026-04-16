@@ -31,3 +31,17 @@ class Cleaner:
         df = df.reset_index(drop=True)
 
         return df
+    
+    def clean_jdg(self, df_jdg):
+        df = self._standarize_columns(df_jdg)
+        df["month"] = pd.to_datetime(df["miesiac"], errors="coerce")
+        
+        df["jdg_active"] = df["jdg"].apply(
+            lambda x: 0 if str(x).strip().lower() == "zawieszona" else 1
+        )
+        
+        df = df[["month", "jdg_active"]]
+        df = df.dropna(subset=["month"])
+
+        print("JDG", df)
+        return df

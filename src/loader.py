@@ -23,6 +23,7 @@ class Loader:
     def __init__(self, data_dir="data"):
         self.data_dir = data_dir
         self.path_amazon_sales = os.path.join(self.data_dir, "amazon_sales.csv")
+        self.path_own_channel_sales = os.path.join(self.data_dir, "own_channel_activity.csv")
     
     def _ensure_exist(self, path):
         if not os.path.exists(path):
@@ -59,4 +60,9 @@ class Loader:
         df = self._read_csv(self.path_amazon_sales)
         self._validate_columns(df, ["Date", "Title", "ASIN", "Marketplace", "Units"], "amazon_sales.csv")
         return df
-
+    
+    def load_own_channel_activity(self):
+        self._ensure_exist(self.path_own_channel_sales)
+        df = self._read_csv(self.path_own_channel_sales)
+        self._validate_columns(df, ["Miesiac" ,"JDG"], "own_channel_activity.csv")
+        return df
