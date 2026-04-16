@@ -39,8 +39,7 @@ class Cleaner:
         df["jdg"] = df["jdg"].isna().astype(int)
         
         df = df[["month", "jdg"]]
-
-        print(df)
+        
         return df
     
     def enrich_sales_with_own_activity(self, df_sales, df_activity):

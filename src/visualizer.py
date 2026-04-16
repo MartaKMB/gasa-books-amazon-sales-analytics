@@ -28,6 +28,7 @@ def save_dashboard(
         f"Total units: {kpis.get("total_units", 0):,}",
         f"Products: {kpis.get("distinct_products", 0)}",
         f"Regions: {kpis.get("distinct_regions", 0)}",
+        f"JDG impact {kpis.get("status_suspended_impact"):.2%}"
     ]
     kpi_text_block = "\n".join(kpi_lines)
 
@@ -36,25 +37,6 @@ def save_dashboard(
         va="top", ha="left",
         fontsize=11, family="Monospace"
     )
-
-    # axs[1, 0].axis("off")
-
-    # report_lines = [
-    #     "Amazon books sales dashboard",
-    #     "showing key performance metrics,",
-    #     "top-selling products,",
-    #     "regional distribution,",
-    #     "and sales seasonality ",
-    #     "across months and quarters",
-    #     "based on internal sales data.",
-    # ]
-    # report_text_block = "\n".join(report_lines)
-
-    # axs[1, 0].text(
-    #     0.02, 0.98, report_text_block,
-    #     va="top", ha="left",
-    #     fontsize=9, family="Monospace"
-    # )
 
     axs[0, 1].bar(top["shorttitle"], top["units_sum"])
     axs[0, 1].set_title(f"Top {n_top} sold books")

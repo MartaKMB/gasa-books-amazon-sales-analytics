@@ -44,11 +44,18 @@ class SalesAnalyzer:
         }
         self.df["status"] = self.df["jdg"].map(status_map)
     
+    def _status_impact(self):
+        active = self.df[self.df["jdg"] == 1]["units"].mean()
+        suspended = self.df[self.df["jdg"] == 0]["units"].mean()
+        uplift = (suspended - active) / active
+        return uplift
+    
     def kpis(self):
         out = {}
         out["total_units"] = int(self.df["units"].sum())
         out["distinct_products"] = int(self.df["asin"].nunique())
         out["distinct_regions"] = int(self.df["region"].nunique())
+        out["status_suspended_impact"] = float(self._status_impact())
         return out
 
     def by_product(self):
