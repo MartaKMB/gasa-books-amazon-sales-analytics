@@ -36,11 +36,6 @@ def save_dashboard(
         fontsize=11, family="Monospace"
     )
 
-
-
-    
-
-    # axs[1, 0].text(0.02, 0.98, "This dashboard analyzes Amazon book sales data from my seller account, showing key KPIs, top-performing titles, regional performance, and time-based trends. A clear seasonal pattern emerges, with the strongest sales occurring in Q1 and Q4, indicating increased demand during these periods.")
     axs[1, 0].axis("off")
 
     report_lines = [
@@ -59,8 +54,6 @@ def save_dashboard(
         va="top", ha="left",
         fontsize=9, family="Monospace"
     )
-
-
 
     axs[0, 1].bar(top["shorttitle"], top["units_sum"])
     axs[0, 1].set_title(f"Top {n_top} sold books")
@@ -97,7 +90,4 @@ def save_dashboard(
     plt.savefig(out_path, dpi=150)
 
     plt.close(fig)
-
-    print("by month:", df_by_month)
     return out_path
-
