@@ -35,14 +35,12 @@ class SalesAnalyzer:
             .str.upper()
             .replace({"COM": "US"})  # exception for Amazon.com
         )
-        # print(self.df)
     
     def kpis(self):
         out = {}
         out["total_units"] = int(self.df["units"].sum())
         out["distinct_products"] = int(self.df["asin"].nunique())
         out["distinct_regions"] = int(self.df["region"].nunique())
-        # print("out: ", out)
         return out
 
     def by_product(self):
@@ -51,7 +49,6 @@ class SalesAnalyzer:
                .agg(units_sum=("units", "sum"))
                .sort_values("units_sum", ascending=False)
         )
-        print("by product:", agg)
         return agg
     
     def by_region(self):
@@ -60,7 +57,6 @@ class SalesAnalyzer:
                .agg(units_sum=("units", "sum"))
                .sort_values("units_sum", ascending=False)
         )
-        print("by region:", agg)
         return agg
     
     def by_month(self):
@@ -69,7 +65,6 @@ class SalesAnalyzer:
                .agg(units_sum=("units", "sum"))
                .sort_values("units_sum", ascending=False)
         )
-        print("by month:", agg)
         return agg
     
     def by_quarter(self):
@@ -81,5 +76,4 @@ class SalesAnalyzer:
             .agg(units_sum=("units", "sum"))
             .sort_values("units_sum", ascending=False)
         )
-        print("Q:", agg)
         return agg
