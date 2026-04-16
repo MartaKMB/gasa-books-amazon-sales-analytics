@@ -66,3 +66,8 @@ class Loader:
         df = self._read_csv(self.path_own_channel_sales)
         self._validate_columns(df, ["Miesiac" ,"JDG"], "own_channel_activity.csv")
         return df
+    
+    def load_all(self):
+        amazon_sales = self.load_sales()
+        own_activity = self.load_own_channel_activity()
+        return amazon_sales, own_activity

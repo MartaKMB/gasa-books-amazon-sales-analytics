@@ -10,6 +10,7 @@ def save_dashboard(
     df_by_region,
     df_by_month,
     df_by_quarter,
+    df_impact,
     kpis: dict,
     n_top: int = 3,
     out_dir: str = "reports/figures",
@@ -36,24 +37,24 @@ def save_dashboard(
         fontsize=11, family="Monospace"
     )
 
-    axs[1, 0].axis("off")
+    # axs[1, 0].axis("off")
 
-    report_lines = [
-        "Amazon books sales dashboard",
-        "showing key performance metrics,",
-        "top-selling products,",
-        "regional distribution,",
-        "and sales seasonality ",
-        "across months and quarters",
-        "based on internal sales data.",
-    ]
-    report_text_block = "\n".join(report_lines)
+    # report_lines = [
+    #     "Amazon books sales dashboard",
+    #     "showing key performance metrics,",
+    #     "top-selling products,",
+    #     "regional distribution,",
+    #     "and sales seasonality ",
+    #     "across months and quarters",
+    #     "based on internal sales data.",
+    # ]
+    # report_text_block = "\n".join(report_lines)
 
-    axs[1, 0].text(
-        0.02, 0.98, report_text_block,
-        va="top", ha="left",
-        fontsize=9, family="Monospace"
-    )
+    # axs[1, 0].text(
+    #     0.02, 0.98, report_text_block,
+    #     va="top", ha="left",
+    #     fontsize=9, family="Monospace"
+    # )
 
     axs[0, 1].bar(top["shorttitle"], top["units_sum"])
     axs[0, 1].set_title(f"Top {n_top} sold books")
@@ -62,23 +63,28 @@ def save_dashboard(
     axs[0, 1].grid(axis="y", alpha=0.3)
 
     axs[0, 2].bar(df_by_region["region"], df_by_region["units_sum"])
-    axs[0, 2].set_title(f"Sales by region")
+    axs[0, 2].set_title("Sales by region")
     axs[0, 2].set_xlabel("country")
     axs[0, 2].set_ylabel("units")
     axs[0, 2].grid(axis="y", alpha=0.3)
 
-    axs[1, 1].bar(df_by_quarter["quarter"], df_by_quarter["units_sum"])
-    axs[1, 1].set_title(f"Sales seasonality per quarter")
-    axs[1, 1].set_xlabel("quarter")
+    axs[1, 0].bar(df_by_quarter["quarter"], df_by_quarter["units_sum"])
+    axs[1, 0].set_title("Sales seasonality per quarter")
+    axs[1, 0].set_xlabel("quarter")
+    axs[1, 0].set_ylabel("units")
+    axs[1, 0].grid(axis="y", alpha=0.3)
+
+    axs[1, 1].plot(df_by_month["month"], df_by_month["units_sum"], marker="o")
+    axs[1, 1].set_title("Sales by month")
+    axs[1, 1].set_xlabel("month")
     axs[1, 1].set_ylabel("units")
+    axs[1, 1].tick_params(axis="x", rotation=90)
     axs[1, 1].grid(axis="y", alpha=0.3)
 
-    axs[1, 2].plot(df_by_month["month"], df_by_month["units_sum"], marker="o")
-    axs[1, 2].bar(df_by_month["month"], df_by_month["units_sum"])
-    axs[1, 2].set_title(f"Sales by month")
-    axs[1, 2].set_xlabel("month")
+    axs[1, 2].bar(df_impact["status"], df_impact["units_sum"])
+    axs[1, 2].set_title("Own channel status vs sales on Amazon")
+    axs[1, 2].set_xlabel("JDG status")
     axs[1, 2].set_ylabel("units")
-    axs[1, 2].tick_params(axis="x", rotation=90)
     axs[1, 2].grid(axis="y", alpha=0.3)
 
     fig.suptitle("GaSa books sales dashboard", fontsize=14, y=0.98)

@@ -6,7 +6,7 @@ class SalesAnalyzer:
     def __init__(self, df_sales):
         self.df = df_sales.copy() # defensive copy
         
-        required = ["date", "title", "asin", "marketplace", "units"]
+        required = ["month", "title", "asin", "marketplace", "units", "jdg"]
         missing = []
         for c in required:
             if c not in self.df.columns:
@@ -15,10 +15,11 @@ class SalesAnalyzer:
         if missing:
             raise ValueError(f"SalesAnalyzer: missing required columns {missing}")
         
-        self.df = self.df[self.df["date"].notna()]
+        self.df = self.df[self.df["month"].notna()]
 
         self._add_shorttitle()
         self._add_region()
+        self._add_status()
 
     def _add_shorttitle(self):
         asin_map = {
@@ -35,6 +36,13 @@ class SalesAnalyzer:
             .str.upper()
             .replace({"COM": "US"})  # exception for Amazon.com
         )
+    
+    def _add_status(self):
+        status_map = {
+            0: "suspended",
+            1: "active"
+        }
+        self.df["status"] = self.df["jdg"].map(status_map)
     
     def kpis(self):
         out = {}
@@ -60,7 +68,7 @@ class SalesAnalyzer:
         return agg
     
     def by_month(self):
-        self.df["month"] = self.df["date"].dt.to_period("M").dt.to_timestamp()
+        self.df["month"] = self.df["month"].dt.to_period("M").dt.to_timestamp()
         agg = (
             self.df.groupby("month", as_index=False)
                .agg(units_sum=("units", "sum"))
@@ -70,7 +78,7 @@ class SalesAnalyzer:
     
     def by_quarter(self):
         # sales seasonality
-        self.df["quarter"] = self.df["date"].dt.quarter
+        self.df["quarter"] = self.df["month"].dt.quarter
 
         agg = (
             self.df.groupby("quarter", as_index=False)
@@ -78,3 +86,13 @@ class SalesAnalyzer:
             .sort_values("units_sum", ascending=False)
         )
         return agg
+    
+    def amazon_vs_jdg(self):
+        agg = (
+            self.df.groupby("status", as_index=False)
+            .agg(units_sum=("units", "sum"))
+            .sort_values("units_sum", ascending=False)
+        )
+        print(agg)
+        return agg
+    
