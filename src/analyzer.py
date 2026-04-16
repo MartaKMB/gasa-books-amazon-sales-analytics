@@ -103,3 +103,11 @@ class SalesAnalyzer:
         print(agg)
         return agg
     
+    def seasonality_check(self):
+        agg = (
+            self.df.groupby(["jdg", "quarter"], as_index=False)
+            .agg(avg_units=("units", "mean"))
+            .sort_values(["quarter", "jdg"])
+        )
+        return agg
+    

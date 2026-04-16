@@ -11,6 +11,7 @@ def save_dashboard(
     df_by_month,
     df_by_quarter,
     df_impact,
+    df_seasonality,
     kpis: dict,
     n_top: int = 3,
     out_dir: str = "reports/figures",
@@ -50,17 +51,37 @@ def save_dashboard(
     axs[0, 2].set_ylabel("units")
     axs[0, 2].grid(axis="y", alpha=0.3)
 
-    axs[1, 0].bar(df_by_quarter["quarter"], df_by_quarter["units_sum"])
-    axs[1, 0].set_title("Sales seasonality per quarter")
-    axs[1, 0].set_xlabel("quarter")
+    # axs[1, 0].bar(df_by_quarter["quarter"], df_by_quarter["units_sum"])
+    # axs[1, 0].set_title("Sales seasonality per quarter")
+    # axs[1, 0].set_xlabel("quarter")
+    # axs[1, 0].set_ylabel("units")
+    # axs[1, 0].grid(axis="y", alpha=0.3)
+
+    axs[1, 0].plot(df_by_month["month"], df_by_month["units_sum"], marker="o")
+    axs[1, 0].set_title("Sales by month")
+    axs[1, 0].set_xlabel("month")
     axs[1, 0].set_ylabel("units")
+    axs[1, 0].tick_params(axis="x", rotation=90)
     axs[1, 0].grid(axis="y", alpha=0.3)
 
-    axs[1, 1].plot(df_by_month["month"], df_by_month["units_sum"], marker="o")
-    axs[1, 1].set_title("Sales by month")
-    axs[1, 1].set_xlabel("month")
-    axs[1, 1].set_ylabel("units")
-    axs[1, 1].tick_params(axis="x", rotation=90)
+    axs[1, 1].bar(
+        df_seasonality[df_seasonality["jdg"] == 1]["quarter"] - 0.15,
+        df_seasonality[df_seasonality["jdg"] == 1]["avg_units"],
+        width=0.3,
+        label="active"
+    )
+
+    axs[1, 1].bar(
+        df_seasonality[df_seasonality["jdg"] == 0]["quarter"] + 0.15,
+        df_seasonality[df_seasonality["jdg"] == 0]["avg_units"],
+        width=0.3,
+        label="suspended"
+    )
+
+    axs[1, 1].set_xlabel("quarter")
+    axs[1, 1].set_title("Amazon sales by quarter & channel status")
+    axs[1, 1].set_ylabel("avg units")
+    axs[1, 1].legend()
     axs[1, 1].grid(axis="y", alpha=0.3)
 
     axs[1, 2].bar(df_impact["status"], df_impact["units_sum"])
