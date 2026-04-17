@@ -28,7 +28,7 @@ def save_dashboard(
         f"Total units: {kpis.get("total_units", 0):,}",
         f"Products: {kpis.get("distinct_products", 0)}",
         f"Regions: {kpis.get("distinct_regions", 0)}",
-        f"JDG impact {kpis.get("status_suspended_impact"):.2%}"
+        f"JDG impact {kpis.get("cannibalization_impact"):.2%}"
     ]
     kpi_text_block = "\n".join(kpi_lines)
 

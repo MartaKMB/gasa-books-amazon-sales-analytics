@@ -2,20 +2,20 @@
 Business logic for aggregations and KPIs
 """
 
-class SalesAnalyzer:
-    def __init__(self, df_sales):
-        self.df = df_sales.copy() # defensive copy
-        
-        required = ["month", "title", "asin", "marketplace", "units", "own_channel_active"]
-        missing = []
-        for c in required:
-            if c not in self.df.columns:
-                missing.append(c)
-        
+class BaseAnalyzer:
+    def __init__(self, df):
+        self.df = df.copy()
+
+        required = [
+            "month", "title", "asin",
+            "marketplace", "units", "own_channel_active"
+        ]
+
+        missing = [c for c in required if c not in self.df.columns]
         if missing:
-            raise ValueError(f"SalesAnalyzer: missing required columns {missing}")
-        
-        self.df = self.df[self.df["month"].notna()]
+            raise ValueError(f"Missing required columns: {missing}")
+
+        self.df = self.df[self.df["month"].notna()].copy()
 
         self._add_book_label()
         self._add_region()
@@ -28,76 +28,93 @@ class SalesAnalyzer:
             8394291368: "for dogs"
         }
         self.df["book"] = self.df["asin"].map(asin_map)
-    
+
     def _add_region(self):
         self.df["region"] = (
             self.df["marketplace"]
             .str.split(".").str[-1]
             .str.upper()
-            .replace({"COM": "US"})  # exception for Amazon.com
+            .replace({"COM": "US"})
         )
-    
+
     def _add_status(self):
         status_map = {
-            0: "suspended",
-            1: "active"
+            1: "active",
+            0: "suspended"
         }
         self.df["channel_status"] = self.df["own_channel_active"].map(status_map)
-    
+
+class KPIAnalyzer(BaseAnalyzer):
+
+    def kpis(self):
+        return {
+            "total_units": int(self.df["units"].sum()),
+            "distinct_products": int(self.df["asin"].nunique()),
+            "distinct_regions": int(self.df["region"].nunique()),
+            "cannibalization_impact": self._status_impact()
+        }
+
     def _status_impact(self):
         active = self.df[self.df["own_channel_active"] == 1]["units"].mean()
         suspended = self.df[self.df["own_channel_active"] == 0]["units"].mean()
-        uplift = (suspended - active) / active
-        return uplift
-    
-    def kpis(self):
-        out = {}
-        out["total_units"] = int(self.df["units"].sum())
-        out["distinct_products"] = int(self.df["asin"].nunique())
-        out["distinct_regions"] = int(self.df["region"].nunique())
-        out["status_suspended_impact"] = float(self._status_impact())
-        return out
+
+        if active == 0:
+            return 0.0
+
+        return float((suspended - active) / active)
+
+class AggregationAnalyzer(BaseAnalyzer):
 
     def by_product(self):
-        agg = (
+        return (
             self.df.groupby("book", as_index=False)
-               .agg(total_units=("units", "sum"))
-               .sort_values("total_units", ascending=False)
+            .agg(total_units=("units", "sum"))
+            .sort_values("total_units", ascending=False)
         )
-        return agg
-    
+
     def by_region(self):
-        agg = (
+        return (
             self.df.groupby("region", as_index=False)
-               .agg(total_units=("units", "sum"))
-               .sort_values("total_units", ascending=False)
+            .agg(total_units=("units", "sum"))
+            .sort_values("total_units", ascending=False)
         )
-        return agg
-    
+
     def by_month(self):
-        self.df["month"] = self.df["month"].dt.to_period("M").dt.to_timestamp()
-        agg = (
-            self.df.groupby("month", as_index=False)
-               .agg(total_units=("units", "sum"))
-               .sort_values("month")
+        df = self.df.copy()
+
+        df["month"] = df["month"].dt.to_period("M").dt.to_timestamp()
+
+        return (
+            df.groupby("month", as_index=False)
+            .agg(total_units=("units", "sum"))
+            .sort_values("month")
         )
-        return agg
+
+    def seasonality(self):
+        df = self.df.copy()
+        df["quarter"] = df["month"].dt.quarter
+
+        return (
+            df.groupby(["own_channel_active", "quarter"], as_index=False)
+            .agg(avg_units=("units", "mean"))
+            .sort_values(["quarter", "own_channel_active"])
+        )
     
-    def amazon_vs_jdg(self):
-        agg = (
+class CannibalizationAnalyzer(BaseAnalyzer):
+
+    def sales_by_channel_status(self):
+        return (
             self.df.groupby("channel_status", as_index=False)
             .agg(total_units=("units", "sum"))
             .sort_values("total_units", ascending=False)
         )
-        return agg
-    
-    def seasonality_check(self):
-        self.df["quarter"] = self.df["month"].dt.quarter
 
-        agg = (
-            self.df.groupby(["own_channel_active", "quarter"], as_index=False)
-            .agg(avg_units=("units", "mean"))
-            .sort_values(["quarter", "own_channel_active"])
-        )
-        return agg
-    
+    def impact_summary(self):
+        active = self.df[self.df["own_channel_active"] == 1]["units"]
+        suspended = self.df[self.df["own_channel_active"] == 0]["units"]
+
+        return {
+            "active_avg": float(active.mean()),
+            "suspended_avg": float(suspended.mean()),
+            "difference": float(suspended.mean() - active.mean())
+        }

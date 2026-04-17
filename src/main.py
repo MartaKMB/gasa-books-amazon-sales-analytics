@@ -1,6 +1,6 @@
 from loader import Loader
 from cleaner import Cleaner
-from analyzer import SalesAnalyzer
+from analyzer import KPIAnalyzer, AggregationAnalyzer, CannibalizationAnalyzer
 import visualizer as viz
 import os
 
@@ -20,13 +20,16 @@ own_activity = cleaner.clean_jdg(own_activity)
 sales_enriched = cleaner.enrich_sales_with_own_activity(sales, own_activity)
 
 # 3) Analyze
-analyzer = SalesAnalyzer(sales_enriched)
-kpis = analyzer.kpis()
-by_prod = analyzer.by_product()
-by_reg = analyzer.by_region()
-by_month = analyzer.by_month()
-own_activity_impact = analyzer.amazon_vs_jdg()
-seasonality_impact = analyzer.seasonality_check()
+kpi_analyzer = KPIAnalyzer(sales_enriched)
+agg_analyzer = AggregationAnalyzer(sales_enriched)
+cannibal_analyzer = CannibalizationAnalyzer(sales_enriched)
+
+kpis = kpi_analyzer.kpis()
+by_prod = agg_analyzer.by_product()
+by_reg = agg_analyzer.by_region()
+by_month = agg_analyzer.by_month()
+seasonality_impact = agg_analyzer.seasonality()
+own_activity_impact = cannibal_analyzer.sales_by_channel_status()
 
 # 4) Visualyze
 os.makedirs("reports/figures", exist_ok=True)
