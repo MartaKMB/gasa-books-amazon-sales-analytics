@@ -2,6 +2,10 @@
 Business logic for aggregations and KPIs
 """
 
+from config.products import ASIN_TO_BOOK
+from config.status import STATUS_MAP
+from config.regions import MARKETPLACE_TO_REGION
+
 class BaseAnalyzer:
     def __init__(self, df):
         self.df = df.copy()
@@ -22,27 +26,18 @@ class BaseAnalyzer:
         self._add_status()
 
     def _add_book_label(self):
-        asin_map = {
-            8394291341: "dla psów",
-            8394291333: "dla kotów",
-            8394291368: "for dogs"
-        }
-        self.df["book"] = self.df["asin"].map(asin_map)
+        self.df["book"] = self.df["asin"].map(ASIN_TO_BOOK)
 
     def _add_region(self):
-        self.df["region"] = (
+        region = (
             self.df["marketplace"]
             .str.split(".").str[-1]
             .str.upper()
-            .replace({"COM": "US"})
         )
+        self.df["region"] = region.replace(MARKETPLACE_TO_REGION)
 
     def _add_status(self):
-        status_map = {
-            1: "active",
-            0: "suspended"
-        }
-        self.df["channel_status"] = self.df["own_channel_active"].map(status_map)
+        self.df["channel_status"] = self.df["own_channel_active"].map(STATUS_MAP)
 
 class KPIAnalyzer(BaseAnalyzer):
 
