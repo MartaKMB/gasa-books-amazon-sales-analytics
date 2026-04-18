@@ -10,8 +10,6 @@ class AggregationAnalyzer:
         df = self.df.copy()
 
         df["book"] = df["asin"].map(ASIN_TO_BOOK)
-
-        # fallback jeśli coś nie ma mapowania
         df["book"] = df["book"].fillna("unknown")
 
         return (
@@ -39,7 +37,6 @@ class AggregationAnalyzer:
         )
 
     def seasonality(self):
-
         df = self.by_month()
 
         df["year"] = df["month"].dt.year
@@ -78,7 +75,6 @@ class CannibalizationAnalyzer:
         return df
 
     def impact_summary(self):
-
         df = self.df.copy()
 
         stats = df.groupby("own_channel_active")["units"].mean()
@@ -89,7 +85,6 @@ class CannibalizationAnalyzer:
         }
 
     def event_analysis(self, event_month, window=6):
-
         df = self.df.copy()
 
         before = df[df["month"] < event_month].tail(window)
@@ -109,15 +104,8 @@ class KPIAnalyzer:
         self.df_detailed = df_detailed.copy()
 
     def kpis(self):
-
-        # =========================
-        # CORE
-        # =========================
         total_units = int(self.df_ts["units"].sum())
 
-        # =========================
-        # PRODUCTS / REGIONS
-        # =========================
         books = self.df_detailed["asin"].map(ASIN_TO_BOOK)
         distinct_products = int(books.nunique())
 
@@ -128,17 +116,11 @@ class KPIAnalyzer:
         )
         distinct_regions = int(regions.nunique())
 
-        # =========================
-        # JDG ACTIVITY
-        # =========================
         monthly = self.df_ts.copy()
 
         active_months = int((monthly["own_channel_active"] == 1).sum())
         suspended_months = int((monthly["own_channel_active"] == 0).sum())
 
-        # =========================
-        # AMAZON COVERAGE
-        # =========================
         amazon_active_months = int((monthly["units"] > 0).sum())
         total_months = len(monthly)
 
@@ -147,9 +129,6 @@ class KPIAnalyzer:
             if total_months > 0 else 0
         )
 
-        # =========================
-        # CANNIBALIZATION (prosty sygnał)
-        # =========================
         grouped = monthly.groupby("own_channel_active")["units"].mean()
 
         active_avg = grouped.get(1, 0)
@@ -161,7 +140,6 @@ class KPIAnalyzer:
         else:
             cannibalization_pct = (suspended_avg - active_avg) / active_avg
 
-            # 🔥 próg interpretacji
             if abs(cannibalization_pct) < 0.10:
                 cannibalization_label = "No significant impact"
             elif cannibalization_pct < 0:
@@ -169,9 +147,6 @@ class KPIAnalyzer:
             else:
                 cannibalization_label = "Sales increase when JDG suspended"
 
-        # =========================
-        # FINAL DICT
-        # =========================
         return {
             "total_units": total_units,
             "distinct_products": distinct_products,

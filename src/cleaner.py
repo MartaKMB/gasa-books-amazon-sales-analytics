@@ -1,7 +1,3 @@
-"""
-A cleaner module that prepare data for analysis
-"""
-
 import pandas as pd
 
 class Cleaner:
@@ -38,21 +34,17 @@ class Cleaner:
 
         return df[["month", "own_channel_active", "is_active"]]
 
-    # 👉 TIME-SERIES (do analizy)
     def enrich_sales_with_own_activity(self, df_sales, df_jdg):
-
         monthly = (
             df_sales.groupby("month", as_index=False)
             .agg(units=("units", "sum"))
         )
 
         merged = monthly.merge(df_jdg, on="month", how="left")
-
         merged["own_channel_active"] = merged["own_channel_active"].ffill().fillna(1)
 
         return merged
 
-    # 👉 RAW (do dashboardu)
     def enrich_sales_with_own_activity_raw(self, df_sales, df_jdg):
 
         merged = df_sales.merge(df_jdg, on="month", how="left")

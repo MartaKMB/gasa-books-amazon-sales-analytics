@@ -17,7 +17,7 @@ def plot_kpis(ax, kpis: dict):
         f"Amazon active months: {kpis.get('amazon_active_months', 0)}",
         f"Amazon coverage: {kpis.get('amazon_coverage', 0):.2%}",
         "-----------",
-        f"Cannibalization impact: {kpis.get("cannibalization_pct"):.1%} ",
+        f"Cannibalization impact: {kpis.get("cannibalization_pct"):.2%} ",
         f"({kpis.get('cannibalization_impact')})"
     ]
 
@@ -65,7 +65,6 @@ def plot_seasonality(ax, df):
 
 
 def plot_channel_bar(ax, df):
-
     grouped = df.groupby("own_channel_active")["units"].mean()
 
     ax.bar(
@@ -89,7 +88,6 @@ def save_dashboard(
     out_dir,
     filename
 ):
-
     fig, axs = plt.subplots(2, 3, figsize=(12, 6))
 
     plot_kpis(axs[0, 0], kpis)
