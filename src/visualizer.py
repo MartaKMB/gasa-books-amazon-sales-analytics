@@ -15,7 +15,9 @@ def plot_kpis(ax, kpis: dict):
         f"Total units: {kpis.get('total_units', 0):,}",
         f"Products: {kpis.get('distinct_products', 0)}",
         f"Regions: {kpis.get('distinct_regions', 0)}",
-        f"JDG impact: {kpis.get('cannibalization_impact', 0):.2%}"
+        f"JDG active months: {kpis.get('active_months', 0)}",        # NEW
+        f"JDG suspended months: {kpis.get('suspended_months', 0)}",  # NEW
+        f"Amazon uplift when JDG inactive: {kpis.get('cannibalization_impact', 0):.2%}"
     ]
 
     ax.text(

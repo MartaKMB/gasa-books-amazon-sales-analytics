@@ -25,6 +25,11 @@ agg_analyzer = AggregationAnalyzer(sales_enriched)
 cannibal_analyzer = CannibalizationAnalyzer(sales_enriched)
 
 kpis = kpi_analyzer.kpis()
+
+# NEW: dodajemy split miesięcy active vs suspended
+activity_stats = kpi_analyzer.activity_split(own_activity)
+kpis.update(activity_stats)
+
 by_prod = agg_analyzer.by_product()
 by_reg = agg_analyzer.by_region()
 by_month = agg_analyzer.by_month()
