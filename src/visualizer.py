@@ -15,12 +15,13 @@ def plot_kpis(ax, kpis: dict):
         f"Total units: {kpis.get('total_units', 0):,}",
         f"Products: {kpis.get('distinct_products', 0)}",
         f"Regions: {kpis.get('distinct_regions', 0)}",
+        "-----------",
         f"JDG active months: {kpis.get('active_months', 0)}",
         f"JDG suspended months: {kpis.get('suspended_months', 0)}",
+        f"Amazon active months: {kpis.get('amazon_active_months', 0)}",
         f"Amazon coverage: {kpis.get('amazon_coverage', 0):.2%}",
-
-        # FIXED KEY
-        f"Cannibalization impact: {kpis.get('cannibalization_impact', 0):.2%}"
+        "-----------",
+        f"Cannibalization impact:\n{kpis.get('cannibalization_impact')}"
     ]
 
     ax.text(

@@ -54,12 +54,13 @@ class KPIAnalyzer(BaseAnalyzer):
             "distinct_regions": int(self.df["region"].nunique()),
 
             # FIX: real KPI from cannibalization
-            "cannibalization_impact": cannibal["difference"],
+            "cannibalization_impact": cannibal["insight"],
 
             "channel_substitution_effect": self._status_impact(),
             "channel_substitution_effect_normalized": self._status_impact_normalized(),
 
             # FIXED coverage (no duplicates)
+            "amazon_active_months": self._amazon_active_months(),
             "amazon_coverage": self._amazon_coverage(),
 
             **activity_stats
@@ -125,6 +126,16 @@ class KPIAnalyzer(BaseAnalyzer):
             return 0.0
 
         return float((suspended - active) / active)
+    
+    def _amazon_active_months(self):
+        df = self.df.copy()
+
+        monthly = (
+            df.groupby("month", as_index=False)
+            .agg(units=("units", "sum"))
+        )
+
+        return int((monthly["units"] > 0).sum())
 
 
 # AGGREGATIONS
@@ -181,19 +192,52 @@ class CannibalizationAnalyzer(BaseAnalyzer):
     def impact_summary(self):
         df = self.df.copy()
 
-        start = self._amazon_start()
+        monthly = (
+            df.groupby(["month", "own_channel_active"], as_index=False)
+            .agg(units=("units", "sum"))
+        )
 
-        df = df[df["month"] >= start]
+        stats = (
+            monthly.groupby("own_channel_active")
+            .agg(
+                total_units=("units", "sum"),
+                months=("month", "nunique")
+            )
+            .reset_index()
+        )
 
-        active = df[df["own_channel_active"] == 1]["units"].mean()
-        suspended = df[df["own_channel_active"] == 0]["units"].mean()
+        stats["avg_per_month"] = stats["total_units"] / stats["months"]
+
+        active = stats[stats["own_channel_active"] == 1]["avg_per_month"].values
+        suspended = stats[stats["own_channel_active"] == 0]["avg_per_month"].values
+
+        if len(active) == 0 or len(suspended) == 0:
+            return {
+                "ratio": 1.0,
+                "impact_index": 100,
+                "insight": "Insufficient data"
+            }
+
+        active = active[0]
+        suspended = suspended[0]
+
+        ratio = suspended / active if active != 0 else 0
 
         return {
             "active_avg": float(active),
             "suspended_avg": float(suspended),
-            "difference": float(suspended - active)
-        }
 
+            # 🔥 NEW: business-friendly metrics
+            "ratio": float(ratio),
+            "impact_index": float(ratio * 100),
+
+            # 🔥 NEW: interpretation layer
+            "insight": (
+                "No JDG impact on Amazon sales"
+                if ratio >= 1 else
+                "Possible cannibalization effect"
+            )
+        }
 
     def sales_by_channel_status(self):
         return (
