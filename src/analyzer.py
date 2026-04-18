@@ -49,7 +49,8 @@ class KPIAnalyzer(BaseAnalyzer):
             "distinct_products": int(self.df["asin"].nunique()),
             "distinct_regions": int(self.df["region"].nunique()),
             "channel_substitution_effect": self._status_impact(),
-            "channel_substitution_effect_normalized": self._status_impact_normalized()
+            "channel_substitution_effect_normalized": self._status_impact_normalized(),
+            "amazon_coverage": self._amazon_coverage()
         }
 
     def _status_impact(self):
@@ -100,6 +101,25 @@ class KPIAnalyzer(BaseAnalyzer):
             "suspended_months": int(counts.get(0, 0)),
             "total_months": int(len(df))
         }
+
+    def _amazon_coverage(self):
+        df = self.df.copy()
+
+        monthly_sales = (
+            df.groupby("month", as_index=False)
+            .agg(units=("units", "sum"))
+        )
+
+        amazon_active_months = (monthly_sales["units"] > 0).sum()
+
+        total_months = len(self.df)
+
+        print(amazon_active_months, total_months)
+
+        if total_months == 0:
+            return 0.0
+
+        return float(amazon_active_months / total_months)
 
     def raw_averages(self):
         df = self.df.copy()
