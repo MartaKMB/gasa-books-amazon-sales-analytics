@@ -40,11 +40,7 @@ class BaseAnalyzer:
     def _add_status(self):
         self.df["channel_status"] = self.df["own_channel_active"].map(STATUS_MAP)
 
-
-# ======================
 # KPI ANALYZER
-# ======================
-
 class KPIAnalyzer(BaseAnalyzer):
 
     def kpis(self):
@@ -52,21 +48,13 @@ class KPIAnalyzer(BaseAnalyzer):
             "total_units": int(self.df["units"].sum()),
             "distinct_products": int(self.df["asin"].nunique()),
             "distinct_regions": int(self.df["region"].nunique()),
-
-            # NOTE: zmieniona interpretacja → to NIE "impact JDG"
             "channel_substitution_effect": self._status_impact(),
-
-            # NEW: wersja oczyszczona z sezonowości
             "channel_substitution_effect_normalized": self._status_impact_normalized()
         }
 
-    # ======================
-    # FIX: liczymy na poziomie miesięcy (eliminuje bias liczby rekordów)
-    # ======================
     def _status_impact(self):
         df = self.df.copy()
 
-        # 🔥 agregacja do poziomu miesiąc + status
         monthly = (
             df.groupby(["month", "own_channel_active"], as_index=False)
             .agg(units=("units", "sum"))
@@ -78,12 +66,8 @@ class KPIAnalyzer(BaseAnalyzer):
         if active == 0:
             return 0.0
 
-        # NOTE: interpretacja = uplift Amazona gdy JDG jest wyłączone
         return float((suspended - active) / active)
 
-    # ======================
-    # NEW: kontrola sezonowości (bardziej "fair" porównanie)
-    # ======================
     def _status_impact_normalized(self):
         df = self.df.copy()
         df["quarter"] = df["month"].dt.quarter
@@ -93,7 +77,6 @@ class KPIAnalyzer(BaseAnalyzer):
             .agg(units=("units", "sum"))
         )
 
-        # średnia per kwartał → redukcja wpływu sezonowości
         by_q = (
             monthly.groupby(["own_channel_active", "quarter"], as_index=False)
             .agg(avg_units=("units", "mean"))
@@ -107,9 +90,6 @@ class KPIAnalyzer(BaseAnalyzer):
 
         return float((suspended - active) / active)
 
-    # ======================
-    # NEW: ile miesięcy active vs suspended (bez biasu!)
-    # ======================
     def activity_split(self, df_own_activity):
         df = df_own_activity.copy()
 
@@ -121,9 +101,6 @@ class KPIAnalyzer(BaseAnalyzer):
             "total_months": int(len(df))
         }
 
-    # ======================
-    # NEW: sanity check → realne wartości średnie
-    # ======================
     def raw_averages(self):
         df = self.df.copy()
 
@@ -138,11 +115,7 @@ class KPIAnalyzer(BaseAnalyzer):
             .to_dict()
         )
 
-
-# ======================
 # AGGREGATIONS
-# ======================
-
 class AggregationAnalyzer(BaseAnalyzer):
 
     def by_product(self):
@@ -170,9 +143,6 @@ class AggregationAnalyzer(BaseAnalyzer):
             .sort_values("month")
         )
 
-    # ======================
-    # FIX: seasonality liczona per miesiąc, nie per rekord
-    # ======================
     def seasonality(self):
         df = self.df.copy()
         df["quarter"] = df["month"].dt.quarter
@@ -189,10 +159,7 @@ class AggregationAnalyzer(BaseAnalyzer):
         )
 
 
-# ======================
 # CANNIBALIZATION / EFFECT ANALYSIS
-# ======================
-
 class CannibalizationAnalyzer(BaseAnalyzer):
 
     def sales_by_channel_status(self):
@@ -212,9 +179,6 @@ class CannibalizationAnalyzer(BaseAnalyzer):
             "difference": float(suspended.mean() - active.mean())
         }
 
-    # ======================
-    # NEW: tylko miesiące ACTIVE (uczciwe porównanie)
-    # ======================
     def sales_when_active_only(self):
         df = self.df[self.df["own_channel_active"] == 1]
 

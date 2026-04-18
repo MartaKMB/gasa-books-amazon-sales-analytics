@@ -30,7 +30,6 @@ class Cleaner:
 
         df["month"] = pd.to_datetime(df["miesiac"], errors="coerce")
 
-        # ✅ ZOSTAWIAMY: active=1, suspended=0 (logiczne)
         df["own_channel_active"] = (
             df["jdg"]
             .fillna("active")
@@ -51,18 +50,14 @@ class Cleaner:
         return df[["month", "own_channel_active", "is_active"]]
 
     def enrich_sales_with_own_activity(self, df_sales, df_own_activity):
-        # 🔥 NEW: FULL TIMELINE (KLUCZOWA ZMIANA)
-        # baza = wszystkie miesiące z JDG (source of truth)
         merged = df_own_activity.merge(
             df_sales,
             on="month",
             how="left"
         )
 
-        # brak sprzedaży = 0 (realne zero, nie brak danych)
         merged["units"] = merged["units"].fillna(0)
 
-        # FIX: status zawsze istnieje (bo pochodzi z JDG)
         merged["own_channel_active"] = merged["own_channel_active"].fillna(1)
         merged["is_active"] = merged["is_active"].fillna(True)
 
