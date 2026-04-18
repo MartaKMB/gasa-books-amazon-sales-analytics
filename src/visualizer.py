@@ -41,41 +41,28 @@ def plot_top_products(ax, df, n_top):
 def plot_region(ax, df):
     ax.bar(df["region"], df["total_units"])
     ax.set_title("Region")
+    ax.set_ylabel("units")
 
 
 def plot_monthly(ax, df):
     ax.plot(df["month"], df["units"], marker="o", label="Monthly units")
 
     if "rolling_units" in df.columns:
-        ax.plot(df["month"], df["rolling_units"], label="3M rolling avg")
+        ax.plot(df["month"], df["rolling_units"], label="Underlying trend") # Sales trend (3-month avg) / 3M rolling avg
 
     ax.set_title("Monthly sales")
+    ax.set_ylabel("units")
     ax.legend()
+    ax.tick_params(axis="x", rotation=90)
     ax.grid(axis="y", alpha=0.3)
 
 
 def plot_seasonality(ax, df):
     ax.bar(df["quarter"], df["avg_units"])
     ax.set_title("Seasonality")
+    ax.set_ylabel("units")
+    ax.set_xlabel("quarters")
 
-
-def plot_channel(ax, df):
-
-    ax.plot(df["month"], df["units"], label="Units")
-    ax.plot(df["month"], df["rolling_3m"], label="Trend (3M avg)")
-
-    # zaznaczenie okresów zawieszenia JDG
-    for i in range(len(df)):
-        if df.iloc[i]["own_channel_active"] == 0:
-            ax.axvspan(
-                df.iloc[i]["month"],
-                df.iloc[i]["month"],
-                alpha=0.2
-            )
-
-    ax.set_title("Sales trend with JDG status")
-    ax.legend()
-    ax.grid(axis="y", alpha=0.3)
 
 def plot_channel_bar(ax, df):
 
@@ -86,7 +73,9 @@ def plot_channel_bar(ax, df):
         [grouped.get(1, 0), grouped.get(0, 0)]
     )
 
-    ax.set_title("Avg sales: JDG active vs suspended")
+    ax.set_title("Amazon avg sales vs JDG status")
+    ax.set_ylabel("units")
+    ax.set_xlabel("JDG activity")
 
 
 def save_dashboard(
